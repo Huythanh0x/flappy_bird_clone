@@ -30,7 +30,7 @@ class FlappyBird extends ApplicationAdapter {
     int bottomY;
     int heightBottom;
     int score = 0;
-    int maxScore = 999;
+    int maxScore = 0;
     BitmapFont bitmapScore;
     BitmapFont bitmapMaxScore;
     ArrayList<Integer> arrayBottomY = new ArrayList<>();
@@ -41,6 +41,8 @@ class FlappyBird extends ApplicationAdapter {
     ArrayList<Rectangle> topRectangles = new ArrayList<Rectangle>();
     int gameState = 0;
     Preferences preferences;
+    Texture play;
+
     @Override
     public void create() {
         preferences = Gdx.app.getPreferences("saveScore");
@@ -50,7 +52,7 @@ class FlappyBird extends ApplicationAdapter {
         bird[1] = new Texture("bird2.png");
         bottomTube = new Texture("bottomtube.png");
         topTube = new Texture("toptube.png");
-        birdY = Gdx.graphics.getHeight() / 2;
+        birdY = Gdx.graphics.getHeight() / 2 - bird[birdState].getHeight()/2;
         background = new Texture("bg.png");
         bitmapScore = new BitmapFont();
         bitmapScore.getData().setScale(10);
@@ -58,6 +60,7 @@ class FlappyBird extends ApplicationAdapter {
         bitmapMaxScore = new BitmapFont();
         bitmapMaxScore.getData().setScale(5);
         bitmapMaxScore.setColor(Color.WHITE);
+        play = new Texture("play.png");
     }
 
     public void createPipe() {
@@ -73,15 +76,15 @@ class FlappyBird extends ApplicationAdapter {
         batch.begin();
         batch.draw(background, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         batch.draw(bird[birdState], Gdx.graphics.getWidth() / 3, birdY);
-        bitmapMaxScore.draw(batch, "Max Score " + String.valueOf(maxScore), 50, 1000);
-        bitmapScore.draw(batch, String.valueOf(score), 100, 200);
-        if(birdY <= 0 || birdY >= Gdx.graphics.getHeight() - bird[birdState].getHeight()){
+        if (birdY <= 0 || birdY >= Gdx.graphics.getHeight() - bird[birdState].getHeight()) {
             gameState = -1;
+
         }
         if (gameState == 0) {
             if (Gdx.input.justTouched()) {
                 gameState = 1;
             }
+            batch.draw(play, 3 * Gdx.graphics.getWidth() / 5 - 125, Gdx.graphics.getHeight() / 2 - 125, 250, 250);
         } else if (gameState == 1) {
             if (Gdx.input.isTouched()) {
                 down = 0;
@@ -126,7 +129,8 @@ class FlappyBird extends ApplicationAdapter {
             }
             score = count;
             count = 0;
-
+            bitmapMaxScore.draw(batch, "Max Score " + String.valueOf(maxScore), 50, 1000);
+            bitmapScore.draw(batch, String.valueOf(score), 100, 200);
 
         } else if (gameState == -1) {
             if (Gdx.input.justTouched()) {
@@ -142,10 +146,14 @@ class FlappyBird extends ApplicationAdapter {
                 topRectangles.clear();
             }
 
-            if(maxScore < score){
+            if (maxScore < score) {
                 maxScore = score;
             }
+            batch.draw(play, 3 * Gdx.graphics.getWidth() / 5, Gdx.graphics.getHeight() / 2 - 125, 250, 250);
+            bitmapMaxScore.draw(batch, "Max Score " + String.valueOf(maxScore), 50, 1000);
+            bitmapScore.draw(batch, String.valueOf(score), 100, 200);
             preferences.putInteger("score", maxScore);
+            preferences.flush();
         }
         batch.end();
 
