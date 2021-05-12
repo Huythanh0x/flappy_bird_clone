@@ -20,39 +20,41 @@ class FlappyBird extends ApplicationAdapter {
     Texture bird[] = new Texture[2];
     Texture bottomTube;
     Texture topTube;
+    Texture play;
     int birdY;
     int birdState = 0;
+    int gameState = 0;
     int countGame = 0;
-    float gravity = 2.0f;
-    float down = 0;
-    int gap = 350;
-    Random random = new Random();
     int bottomY;
-    int heightBottom;
+    int bottomHeight;
     int score = 0;
     int maxScore = 0;
+    int gap = 350;
+    float gravity = 2.0f;
+    float down = 0;
+    Random random = new Random();
     BitmapFont bitmapScore;
     BitmapFont bitmapMaxScore;
     ArrayList<Integer> arrayBottomY = new ArrayList<>();
     ArrayList<Integer> arrayHeightBottom = new ArrayList<>();
-    ArrayList<Integer> arrayX = new ArrayList<>();
+    ArrayList<Integer> arrayPipeX = new ArrayList<>();
+
     ArrayList<Rectangle> bottomRectangles = new ArrayList<Rectangle>();
     Rectangle birdRectangle;
     ArrayList<Rectangle> topRectangles = new ArrayList<Rectangle>();
-    int gameState = 0;
+
     Preferences preferences;
-    Texture play;
 
     @Override
     public void create() {
         preferences = Gdx.app.getPreferences("saveScore");
         maxScore = preferences.getInteger("score", maxScore);
         batch = new SpriteBatch();
-        bird[0] = new Texture("bird.png");
+        bird[0] = new Texture("bird1.png");
         bird[1] = new Texture("bird2.png");
         bottomTube = new Texture("bottomtube.png");
         topTube = new Texture("toptube.png");
-        birdY = Gdx.graphics.getHeight() / 2 - bird[birdState].getHeight()/2;
+        birdY = Gdx.graphics.getHeight() / 2 - bird[birdState].getHeight() / 2;
         background = new Texture("bg.png");
         bitmapScore = new BitmapFont();
         bitmapScore.getData().setScale(10);
@@ -64,11 +66,11 @@ class FlappyBird extends ApplicationAdapter {
     }
 
     public void createPipe() {
-        heightBottom = (random.nextInt(50) + 15) * Gdx.graphics.getHeight() / 100;
-        bottomY = heightBottom - bottomTube.getHeight();
+        bottomHeight = (random.nextInt(50) + 15) * Gdx.graphics.getHeight() / 100;
+        bottomY = bottomHeight - bottomTube.getHeight();
         arrayBottomY.add(bottomY);
-        arrayX.add(Gdx.graphics.getWidth());
-        arrayHeightBottom.add(heightBottom);
+        arrayPipeX.add(Gdx.graphics.getWidth());
+        arrayHeightBottom.add(bottomHeight);
     }
 
     @Override
@@ -76,63 +78,18 @@ class FlappyBird extends ApplicationAdapter {
         batch.begin();
         batch.draw(background, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         batch.draw(bird[birdState], Gdx.graphics.getWidth() / 3, birdY);
-        if (birdY <= 0 || birdY >= Gdx.graphics.getHeight() - bird[birdState].getHeight()) {
-            gameState = -1;
-
-        }
+        birdRectangle = new Rectangle(Gdx.graphics.getWidth() / 3, birdY, bird[birdState].getWidth(), bird[birdState].getWidth());
+        bitmapMaxScore.draw(batch, "Max Score " + maxScore, 50, 1000);
+        bitmapScore.draw(batch, String.valueOf(score), 100, 200);
+        
         if (gameState == 0) {
             if (Gdx.input.justTouched()) {
                 gameState = 1;
             }
             batch.draw(play, 3 * Gdx.graphics.getWidth() / 5 - 125, Gdx.graphics.getHeight() / 2 - 125, 250, 250);
-        } else if (gameState == 1) {
-            if (Gdx.input.isTouched()) {
-                down = 0;
-                birdY += 20;
-            }
-            if (countGame % 100 == 0) {
-                createPipe();
-            }
-            down += gravity;
-            countGame++;
-            if (countGame % 3 == 0) {
-                birdY -= down;
-                if (birdState == 0) {
-                    birdState = 1;
-                } else birdState = 0;
-            }
+        }
 
-
-            birdRectangle = new Rectangle(Gdx.graphics.getWidth() / 3, birdY, bird[birdState].getWidth(), bird[birdState].getWidth());
-            int count = 0;
-            bottomRectangles.clear();
-            topRectangles.clear();
-            for (int i = 0; i < arrayBottomY.size(); i++) {
-                batch.draw(bottomTube, arrayX.get(i), arrayBottomY.get(i), bottomTube.getWidth(), bottomTube.getHeight());
-                bottomRectangles.add(new Rectangle(arrayX.get(i), arrayBottomY.get(i), bottomTube.getWidth(), bottomTube.getHeight()));
-                batch.draw(topTube, arrayX.get(i), arrayHeightBottom.get(i) + gap, topTube.getWidth(), topTube.getHeight());
-                topRectangles.add(new Rectangle(arrayX.get(i), arrayHeightBottom.get(i) + gap, topTube.getWidth(), topTube.getHeight()));
-                arrayX.set(i, arrayX.get(i) - 10);
-
-                if (topTube.getWidth() + arrayX.get(i) < bird[birdState].getWidth() + Gdx.graphics.getWidth() / 3) {
-                    count++;
-                }
-
-            }
-            for (int i = 0; i < topRectangles.size(); i++) {
-                if (Intersector.overlaps(birdRectangle, topRectangles.get(i))) {
-                    gameState = -1;
-                }
-                if (Intersector.overlaps(birdRectangle, bottomRectangles.get(i))) {
-                    gameState = -1;
-                }
-            }
-            score = count;
-            count = 0;
-            bitmapMaxScore.draw(batch, "Max Score " + String.valueOf(maxScore), 50, 1000);
-            bitmapScore.draw(batch, String.valueOf(score), 100, 200);
-
-        } else if (gameState == -1) {
+        if (gameState == -1) {
             if (Gdx.input.justTouched()) {
                 gameState = 1;
                 countGame = 0;
@@ -141,7 +98,7 @@ class FlappyBird extends ApplicationAdapter {
                 score = 0;
                 arrayBottomY.clear();
                 arrayHeightBottom.clear();
-                arrayX.clear();
+                arrayPipeX.clear();
                 bottomRectangles.clear();
                 topRectangles.clear();
             }
@@ -149,11 +106,54 @@ class FlappyBird extends ApplicationAdapter {
             if (maxScore < score) {
                 maxScore = score;
             }
+
             batch.draw(play, 3 * Gdx.graphics.getWidth() / 5, Gdx.graphics.getHeight() / 2 - 125, 250, 250);
-            bitmapMaxScore.draw(batch, "Max Score " + String.valueOf(maxScore), 50, 1000);
-            bitmapScore.draw(batch, String.valueOf(score), 100, 200);
             preferences.putInteger("score", maxScore);
             preferences.flush();
+        }
+        if (gameState == 1) {
+            if (birdY <= 0) {
+                gameState = -1;
+            }
+
+            if (Gdx.input.isTouched()) {
+                down = 0;
+                birdY += 20;
+            }
+
+            if (countGame % 100 == 0) {
+                createPipe();
+            }
+            down += gravity;
+            countGame++;
+
+            if (countGame % 3 == 0) {
+                birdY -= down;
+                if (birdState == 0) {
+                    birdState = 1;
+                } else birdState = 0;
+            }
+            int countPipe = 0;
+            bottomRectangles.clear();
+            topRectangles.clear();
+            for (int i = 0; i < arrayPipeX.size(); i++) {
+                arrayPipeX.set(i, arrayPipeX.get(i) - 10);
+                batch.draw(bottomTube, arrayPipeX.get(i), arrayBottomY.get(i), bottomTube.getWidth(), bottomTube.getHeight());
+                bottomRectangles.add(new Rectangle(arrayPipeX.get(i), arrayBottomY.get(i), bottomTube.getWidth(), bottomTube.getHeight()));
+                batch.draw(topTube, arrayPipeX.get(i), arrayHeightBottom.get(i) + gap, topTube.getWidth(), topTube.getHeight());
+                topRectangles.add(new Rectangle(arrayPipeX.get(i), arrayHeightBottom.get(i) + gap, topTube.getWidth(), topTube.getHeight()));
+
+                if (topTube.getWidth() + arrayPipeX.get(i) < Gdx.graphics.getWidth() / 3) {
+                    countPipe++;
+                }
+                if (Intersector.overlaps(birdRectangle, topRectangles.get(i))) {
+                    gameState = -1;
+                }
+                if (Intersector.overlaps(birdRectangle, bottomRectangles.get(i))) {
+                    gameState = -1;
+                }
+            }
+            score = countPipe;
         }
         batch.end();
 
