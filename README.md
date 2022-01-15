@@ -1,5 +1,5 @@
-# flappy_bird_clone
-clone game flappy bird
+## flappy_bird_clone - very basic game 
+**Framework** LibGDX
 a simple version of flappy bird 
 <br>
-<img src="https://github.com/Huythanh0x/flappy_bird_clone/blob/master/Screenshot%20from%202021-05-13%2008-13-15.png">
+<img src="https://github.com/Huythanh0x/flappy_bird_clone/blob/master/flappy%20bird.gif">
